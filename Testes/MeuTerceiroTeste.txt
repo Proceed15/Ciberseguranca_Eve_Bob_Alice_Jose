@@ -1,0 +1,54 @@
+Ciberseguranca_Eve_Bob_Alice_Jose>python3 programa3.py
+[*] Iniciando ataque completo de reconstrução Diffie-Hellman...
+[+] Chave privada real de Bob (secreta): 186802809033655103313966611761555535755
+[+] Analisando a estrutura matemática do grupo público (fatorando j)...
+[+] Fatores pequenos encontrados (< 2^16): [2, 3, 5, 109, 7963, 8539, 20641, 38833, 39341, 46337, 51977, 54319, 57529]
+[+] Fatores selecionados para o ataque: [2, 3, 5, 109, 7963, 8539, 20641, 38833, 39341, 46337, 51977, 54319]
+[+] Produto dos fatores selecionados: 917274756331895975214846320384913099570
+[+] O produto é maior que q? True (Necessário para reconstruir x perfeitamente)
+
+[*] Atacando subgrupo de ordem r = 2...
+  [SUCESSO] Descoberto: Bob_x mod 2 = 1
+
+[*] Atacando subgrupo de ordem r = 3...
+  [SUCESSO] Descoberto: Bob_x mod 3 = 1
+
+[*] Atacando subgrupo de ordem r = 5...
+  [SUCESSO] Descoberto: Bob_x mod 5 = 0
+
+[*] Atacando subgrupo de ordem r = 109...
+  [SUCESSO] Descoberto: Bob_x mod 109 = 22
+
+[*] Atacando subgrupo de ordem r = 7963...
+  [SUCESSO] Descoberto: Bob_x mod 7963 = 1811
+
+[*] Atacando subgrupo de ordem r = 8539...
+  [SUCESSO] Descoberto: Bob_x mod 8539 = 6674
+
+[*] Atacando subgrupo de ordem r = 20641...
+  [SUCESSO] Descoberto: Bob_x mod 20641 = 20417
+
+[*] Atacando subgrupo de ordem r = 38833...
+  [SUCESSO] Descoberto: Bob_x mod 38833 = 19593
+
+[*] Atacando subgrupo de ordem r = 39341...
+  [SUCESSO] Descoberto: Bob_x mod 39341 = 26342
+
+[*] Atacando subgrupo de ordem r = 46337...
+  [SUCESSO] Descoberto: Bob_x mod 46337 = 34785
+
+[*] Atacando subgrupo de ordem r = 51977...
+  [SUCESSO] Descoberto: Bob_x mod 51977 = 16324
+
+[*] Atacando subgrupo de ordem r = 54319...
+  [SUCESSO] Descoberto: Bob_x mod 54319 = 16534
+
+[+] Aplicando o Teorema Chinês do Resto (CRT) para unificar os restos...
+
+================== RESULTADO FINAL ==================
+Chave Privada Real de Bob:       186802809033655103313966611761555535755
+Chave Reconstruída pelo CRT:    186802809033655103313966611761555535755
+
+🎉 SUCESSO ABSOLUTO! A chave recuperada é 100% IDÊNTICA à chave secreta do Bob!
+
+[Pressione ENTER para fechar o programa...]
