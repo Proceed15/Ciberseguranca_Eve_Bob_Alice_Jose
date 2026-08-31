@@ -1,0 +1,219 @@
+1:
+**Não, de forma alguma! Isso não é trapaça.** Na verdade, é exatamente assim que um ataque criptográfico real é projetado e executado.
+
+    No protocolo Diffie-Hellman, os parâmetros **\\(p\\)** (o número primo módulo) e **\\(g\\)** (o gerador) são **informações públicas**. Qualquer pessoa que queira se comunicar (ou interceptar a comunicação), incluindo o atacante (Eve), conhece esses números desde o início. 
+
+    Aqui está o porquê de você não estar trapaceando ao usar esses valores:
+
+    1. **Análise offline de dados públicos:** Como \\(p\\) é um valor público, encontrar os fatores primos de \\(p-1\\) (ou do cofator \\(j\\)) é uma etapa de **pré-computação offline** que o atacante faz inteiramente na sua própria máquina. Você não precisou interagir com o Bob ou roubar nenhuma informação protegida para descobrir que os fatores são `[2, 3, 5, 109...]`. Qualquer pessoa no mundo pode pegar o número \\(p\\) e fatorá-lo.
+    2. **O único segredo real:** A única informação que Bob mantém estritamente em segredo e que você *não* conhece de antemão é a sua chave privada **\\(x\\)**. 
+    3. **O que o teste prova:** O "Programa 2" provou que, mesmo sem saber o valor de \\(x\\), você pôde usar os fatores públicos para criar chaves públicas maliciosas \\(h\\) de ordem pequena. Ao enviá-las ao Bob, você o forçou a realizar cálculos que revelaram os pedacinhos da chave secreta dele (como \\(x \pmod 2\\), \\(x \pmod 3\\), etc.). 
+
+    ### Como deixar o seu código "elegante" e dinâmico
+
+    Para a sua apresentação, se você quiser evitar escrever os fatores manualmente no código (o que é chamado de *hardcoding*), nós podemos juntar tudo em um único script automatizado (**Programa 3**). 
+
+    Em vez de você copiar e colar os números, o próprio programa fará todo o fluxo sozinho:
+    1. O programa inicia e **fatora \\(j\\) de forma dinâmica** em memória (como no seu primeiro teste).
+    2. Ele armazena esses fatores diretamente em uma variável.
+    3. Ele usa essa lista gerada automaticamente para realizar o ataque de subgrupo para cada fator.
+    4. Ele junta todos os resultados e calcula o Teorema Chinês do Resto (CRT) para entregar a chave privada completa do Bob na tela.
+
+    Dessa forma, o seu programa final será 100% independente: ele receberá apenas os parâmetros públicos do sistema e fará todo o ataque sozinho!
+
+    ---
+
+    🧭 **Quer que eu te mostre o código do "Programa 3" unificado que calcula os fatores na hora e reconstrói a chave privada completa do Bob usando o Teorema Chinês do Resto?**
+
+2:
+Aqui está o **Programa 3**! Ele é a coroação do seu estudo e resolve o desafio de forma **100% automatizada e dinâmica**, sem precisar que você copie ou digite nenhum número manualmente. 
+
+Acabei de criar o arquivo **`programa3.py`** e ele já está disponível no seu painel do **Studio** (à direita) para download.
+
+---
+
+### O que o Programa 3 faz de forma inteligente?
+
+Diferente do anterior, o Programa 3 funciona como uma ferramenta de ataque real e profissional:
+1. **Fatoração Dinâmica**: Ele lê os parâmetros públicos e calcula os fatores primos de \\(j\\) na hora.
+2. **Seleção Inteligente**: O algoritmo vai acumulando o produto dos fatores primos encontrados e **para exatamente quando o produto superar \\(q\\)**. Isso garante que temos informação suficiente para recuperar a chave privada de Bob sem desperdiçar tempo atacando subgrupos desnecessários.
+3. **Ataque em Lote**: Ele envia as chaves maliciosas \\(h_i\\) para o Oráculo de Bob, realiza o ataque de força bruta em memória e armazena os restos (as congruências).
+4. **Resolução pelo Teorema Chinês do Resto (CRT)**: Usando o **Algoritmo de Euclides Estendido** para calcular inversos modulares, o programa unifica todas as peças matemáticas e reconstrói o número gigante correspondente à chave privada secreta do Bob.
+
+---
+
+### Código Completo do `programa3.py`
+
+Aqui está o código integrado que você pode ler ou copiar (e que já está salvo na sua pasta do Studio):
+
+```python
+import random
+import hmac
+import hashlib
+from functools import reduce
+import operator
+
+# --- Parâmetros Oficiais do Desafio 57 ---
+p = 7199773997391911030609999317773941274322764333428698921736339643928346453700085358802973900485592910475480089726140708102474957429903531369589969318716771
+g = 4565356397095740655436854503483826832136106141639563487732438195343690437606117828318042418238184896212352329118608100083187535033402010599512641674644143
+q = 236234353446506858198510045061214171961
+j = (p - 1) // q
+
+# --- 1. Bob (O Alvo) ---
+# Bob gera sua chave privada secreta 'x' de forma aleatória módulo q
+bob_x = random.randint(2, q - 1)
+
+def calcular_mac(K: int, m: bytes) -> bytes:
+    """Calcula o HMAC-SHA256 de uma mensagem usando o segredo K como chave."""
+    chave_bytes = K.to_bytes((K.bit_length() + 7) // 8 or 1, byteorder='big')
+    return hmac.new(chave_bytes, m, hashlib.sha256).digest()
+
+def oraculo_do_bob(chave_publica_recebida: int):
+    """Simula o oráculo de Bob recebendo uma chave pública e respondendo com a mensagem e o MAC."""
+    K = pow(chave_publica_recebida, bob_x, p)
+    m = b"crazy flamboyant for the rap enjoyment"
+    t = calcular_mac(K, m)
+    return m, t
+
+# --- 2. Algoritmos Auxiliares do Atacante (Eve) ---
+
+def encontrar_fatores_pequenos(n, limite=65536):
+    """Encontra os fatores primos de n menores que o limite de forma dinâmica."""
+    fatores = []
+    temp = n
+    if temp % 2 == 0:
+        fatores.append(2)
+        while temp % 2 == 0:
+            temp //= 2
+    d = 3
+    while d < limite and d * d <= temp:
+        if temp % d == 0:
+            fatores.append(d)
+            while temp % d == 0:
+                temp //= d
+        d += 2
+    if 1 < temp < limite:
+        fatores.append(temp)
+    return fatores
+
+def mdc_estendido(a, b):
+    """Algoritmo de Euclides Estendido para encontrar o inverso modular."""
+    if a == 0:
+        return b, 0, 1
+    mdc, x1, y1 = mdc_estendido(b % a, a)
+    x = y1 - (b // a) * x1
+    y = x1
+    return mdc, x, y
+
+def inverso_modular(a, m):
+    """Calcula o inverso modular de a mod m."""
+    mdc, x, _ = mdc_estendido(a, m)
+    if mdc != 1:
+        raise Exception("Inverso modular não existe")
+    return x % m
+
+def teorema_chines_resto(n, a):
+    """
+    Resolve o sistema de congruências usando o Teorema Chinês do Resto.
+    n: lista de módulos coprime (r_i)
+    a: lista de restos (x mod r_i)
+    Retorna o valor único x mod (produto de todos os r_i).
+    """
+    soma = 0
+    produto = reduce(operator.mul, n, 1)
+    for n_i, a_i in zip(n, a):
+        p_i = produto // n_i
+        soma += a_i * inverso_modular(p_i, n_i) * p_i
+    return soma % produto
+
+def gerar_elemento_de_ordem(r, p):
+    """Gera um elemento h de ordem r módulo p."""
+    h = 1
+    while h == 1:
+        rand_val = random.randint(2, p - 1)
+        h = pow(rand_val, (p - 1) // r, p)
+    return h
+
+# --- 3. Execução do Ataque Completo ---
+
+def executar_ataque_completo():
+    print("[*] Iniciando ataque completo de reconstrução Diffie-Hellman...")
+    print(f"[+] Chave privada real de Bob (secreta): {bob_x}")
+    
+    # Passo A: Encontrar os fatores primos pequenos de j
+    print("[+] Analisando a estrutura matemática do grupo público (fatorando j)...")
+    fatores = encontrar_fatores_pequenos(j)
+    print(f"[+] Fatores pequenos encontrados (< 2^16): {fatores}")
+    
+    # Passo B: Selecionar fatores até que o produto supere q
+    fatores_usados = []
+    acumulado = 1
+    for r in fatores:
+        fatores_usados.append(r)
+        acumulado *= r
+        if acumulado > q:
+            break
+            
+    print(f"[+] Fatores selecionados para o ataque: {fatores_usados}")
+    print(f"[+] Produto dos fatores selecionados: {acumulado}")
+    print(f"[+] O produto é maior que q? {acumulado > q} (Necessário para reconstruir x perfeitamente)")
+    
+    # Passo C: Atacar cada subgrupo para obter as congruências (bob_x mod r_i)
+    restos = []
+    for r in fatores_usados:
+        print(f"\n[*] Atacando subgrupo de ordem r = {r}...")
+        
+        # Gerar h de ordem r
+        h = gerar_elemento_de_ordem(r, p)
+        
+        # Consultar o oráculo de Bob
+        m, t = oraculo_do_bob(h)
+        
+        # Força bruta offline no subgrupo
+        encontrado = False
+        for palpite_v in range(r):
+            K_palpite = pow(h, palpite_v, p)
+            t_palpite = calcular_mac(K_palpite, m)
+            if t_palpite == t:
+                print(f"  [SUCESSO] Descoberto: Bob_x mod {r} = {palpite_v}")
+                restos.append(palpite_v)
+                encontrado = True
+                break
+        if not encontrado:
+            print(f"  [ERRO] Falha ao decifrar módulo {r}")
+            return
+            
+    # Passo D: Reconstruir a chave usando o Teorema Chinês do Resto (CRT)
+    print("\n[+] Aplicando o Teorema Chinês do Resto (CRT) para unificar os restos...")
+    chave_reconstruida = teorema_chines_resto(fatores_usados, restos)
+    
+    print("\n================== RESULTADO FINAL ==================")
+    print(f"Chave Privada Real de Bob:       {bob_x}")
+    print(f"Chave Reconstruída pelo CRT:    {chave_reconstruida}")
+    
+    if chave_reconstruida == bob_x:
+        print("\n🎉 SUCESSO ABSOLUTO! A chave recuperada é 100% IDÊNTICA à chave secreta do Bob!")
+    else:
+        print("\n⚠ A chave reconstruída difere. Verifique se o produto acumulado superou q.")
+
+if __name__ == "__main__":
+    executar_ataque_completo()
+    input("\n[Pressione ENTER para fechar o programa...]")
+```
+
+---
+
+### O que você verá ao rodar no Windows:
+
+Ao abrir o prompt de comando na sua pasta `Ciberseguranca_Eve_Bob_Alice_Jose` e digitar `python programa3.py`, você assistirá a todo o fluxo acontecendo de ponta a ponta:
+
+1. O script gera uma chave secreta de Bob aleatoriamente.
+2. Ele calcula os fatores de \\(j\\).
+3. Ele descobre cada pequeno pedaço da chave módulo \\(r_i\\).
+4. No final, o **Teorema Chinês do Resto** se encarrega de reconstruir um número gigante de 39 dígitos que bate perfeitamente com a chave gerada por Bob.
+
+Isso é uma demonstração fantástica e prática de um ataque de criptoanálise real!
+
+---
+
+🛡️ **Quer que eu te ajude a estruturar um roteiro em tópicos para a sua apresentação, explicando de forma simples a teoria por trás de cada parte deste código para os seus avaliadores?**
