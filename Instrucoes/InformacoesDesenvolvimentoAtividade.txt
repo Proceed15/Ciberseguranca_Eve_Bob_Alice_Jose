@@ -1,0 +1,39 @@
+Instruções Gerais para Rodar o Software:
+
+1. **Bob (O Servidor)**: 
+   * Rodaria em um computador como um **servidor de rede ativo** (usando a biblioteca padrão `socket` do Python ou uma API web minimalista com `Flask`).
+   * Ele abriria uma porta (como a `8080`) e ficaria escutando conexões.
+   * O código de Bob teria a chave privada \\(x\\) estática salva em memória. Ele receberia uma chave pública por TCP/IP, calcularia o segredo modular \\(K = y^x \pmod p\\), geraria o MAC e devolveria os bytes de `(mensagem, MAC)` pela rede.
+2. **Eve (Você - O Cliente)**:
+   * Rodaria o script de ataque em outra máquina conectada à mesma rede.
+   * Em vez de chamar uma função local, seu programa faria uma requisição de rede (via Sockets ou HTTP) enviando as chaves maliciosas \\(h_i\\) para o IP do computador de Bob (ex: `192.168.1.15:8080`).
+   * Ao receber as respostas com os MACs, seu script realizaria a busca exaustiva offline e a reconstrução por CRT inteiramente na sua máquina.
+
+---
+
+#### 1. Implementação do Protocolo e do Oráculo (Bob)
+* **Objetivo**: Simular o comportamento vulnerável de um servidor.
+* **O que fazer**: Bob deve gerar uma chave privada estática \\(x\\) módulo \\(q\\). Ele deve expor uma interface (oráculo) que aceita uma chave pública e devolve um MAC gerado a partir do segredo compartilhado derivado. **Bob não deve validar a chave recebida nesta etapa inicial**.
+
+#### 2. Implementação do Atacante (Eve)
+* **Objetivo**: Demonstrar a quebra da chave privada sem força bruta direta no segredo gigante.
+* **O que fazer**:
+  * **Fatoração**: Identificar os fatores primos pequenos de \\(j = (p-1)/q\\).
+  * **Confinamento**: Gerar os elementos \\(h\\) de ordem pequena \\(r\\).
+  * **Ataque Offline**: Enviar \\(h\\) para o oráculo, obter o MAC e testar os possíveis valores de \\(K\\) localmente até descobrir \\(x \pmod r\\).
+  * **Matemática do CRT**: Aplicar o **Teorema Chinês do Resto** para unificar todos os pedaços e revelar a chave privada real \\(x\\) de Bob de forma exata.
+
+#### 3. Implementação de Testes (Provas de Conceito)
+* **Objetivo**: Comprovar para a banca que seu código funciona de forma automatizada e confiável.
+* **O que fazer**: Criar asserções que verifiquem se a chave recuperada por Eve é idêntica à chave gerada aleatoriamente por Bob no início da execução (como fizemos no final do Programa 3).
+
+#### 4. Inclusão de Contramedidas de Segurança (A Defesa)
+Este é um ponto altamente valorizado em apresentações acadêmicas de cibersegurança. Aqui adicione e demonstre **contramedidas de proteção**:
+* **Validação de Subgrupo (Subgroup Validation)**: Bob deve verificar se a chave pública recebida \\(y\\) é válida antes de calcular o segredo compartilhado. Para isso, ele deve checar se:
+  1. \\(1 < y < p-1\\).
+  2. \\(y^q \equiv 1 \pmod p\\). Se este teste falhar, significa que a chave não pertence ao subgrupo correto e a conexão deve ser rejeitada imediatamente.
+* **Cofactor Clearing**: Como alternativa ou defesa extra, o segredo compartilhado pode ser calculado como \\(K = (y^j)^x \pmod p\\) (ou limpando os fatores pequenos), impedindo que o segredo fique confinado a um subgrupo vulnerável.
+* **Demonstração nos testes**: Seu código de teste final deve provar que, **quando a validação está ativada, o ataque de Eve falha** (pois Bob rejeita as chaves públicas maliciosas), e quando está desativada, o ataque funciona.
+---
+
+
