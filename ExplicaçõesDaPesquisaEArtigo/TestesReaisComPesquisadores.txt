@@ -1,0 +1,35 @@
+No artigo científico **"Measuring small subgroup attacks against Diffie-Hellman"**, os pesquisadores não apenas mapearam a teoria, mas executaram testes práticos e escaneamentos massivos na Internet real para medir o impacto dessa falha. 
+
+A metodologia de testes que eles aplicaram envolveu as seguintes abordagens principais:
+
+### 1. Escaneamento Ativo Global (Internet-wide Scans)
+Os autores usaram a ferramenta de escaneamento ultra-rápido **ZMap** combinada com o motor de busca **Censys** para fazer uma varredura completa no espaço de endereços IPv4 público. 
+*   Eles procuraram por servidores ativos em protocolos baseados em TLS (como HTTPS, POP3S e SMTP com STARTTLS), além de servidores de VPN (IKEv1 e IKEv2) e SSH.
+*   Para descobrir quais chaves e parâmetros de Diffie-Hellman os servidores estavam utilizando, os pesquisadores enviaram conexões normais de teste (mensagens *ClientHello*) configuradas para aceitar **apenas algoritmos de Diffie-Hellman efêmero (DHE)**, forçando o servidor a revelar sua chave pública e seu primo \\(p\\).
+
+### 2. O Teste de Validação Estatística (O truque do subgrupo de ordem 7)
+Em agosto de 2016, os autores realizaram um teste ativo inteligente em uma amostra de 1% dos servidores HTTPS públicos para ver quem realmente validava os subgrupos.
+*   Eles identificaram servidores que usavam primos \\(p\\) onde o valor \\(p-1\\) era divisível por **7** (que é o menor fator primo não trivial do popular Grupo 22 da RFC 5114).
+*   Em vez de enviar uma chave pública legítima, eles enviaram uma chave falsa \\(y_c = g_7 \pmod p\\), onde \\(g_7\\) é um gerador de um subgrupo minúsculo de **ordem 7**.
+*   **A lógica matemática do teste:** Como a ordem era 7, o segredo compartilhado calculado pelo servidor só poderia assumir 7 valores possíveis. O scanner dos pesquisadores tentava adivinhar o segredo de forma cega para completar o aperto de mão (*handshake*). 
+*   Se o servidor **não** fizesse validação de subgrupo, a conexão seria concluída com sucesso com uma probabilidade exata de **1 em 7** (cerca de 14,2%).
+*   Eles conseguiram completar o aperto de mão com **1.477 de 10.714 servidores** que usavam esse tipo de primo. Essa proporção estatística provou que **cerca de 96% dos servidores na Internet falhavam em validar a ordem do subgrupo**.
+
+### 3. Teste de Valores Básicos de Fronteira (0, 1 e -1)
+Eles testaram se os servidores aceitavam valores de chave pública absurdos como **\\(0\\), \\(1\\) ou \\(-1 \pmod p\\)**. 
+*   O envio de \\(-1\\) força o segredo do Diffie-Hellman a ser apenas \\(1\\) ou \\(-1\\).
+*   Eles constataram que **mais de 5% dos servidores HTTPS** aceitavam o valor \\(-1\\) e prosseguiam com o aperto de mão gerando segredos a partir dele, deixando-os vulneráveis a ataques de confinamento imediatos. No IKEv1, a taxa de aceitação de valores como \\(1\\) e \\(-1\\) superou 24% em certos grupos.
+
+### 4. Ataque Real Controlado contra o Amazon ELB
+Para comprovar que a vulnerabilidade permitia roubar chaves privadas no mundo real (e não apenas em teoria), os pesquisadores realizaram um ataque ético controlado.
+*   Eles **configuraram a sua própria instância** do balanceador de carga da Amazon (*Amazon Elastic Load Balancer - ELB*), que na época utilizava um primo de 1024 bits com um subgrupo de 160 bits e não fazia validação.
+*   Eles agiram como atacantes contra o seu próprio balanceador e conseguiram recuperar com sucesso **17 bits da chave privada** do dispositivo realizando apenas **3.813 consultas online**.
+
+### 5. Fatoração Massiva Offline de Primos Públicos
+Os autores coletaram todos os 41.847 primos não seguros únicos que encontraram ativos na Internet. 
+*   Para analisar quão vulnerável cada um deles era, eles usaram a ferramenta **GMP-ECM** (implementação do Método de Fatoração por Curvas Elípticas).
+*   Eles rodaram esse software em um **cluster local de computadores com 288 núcleos de processamento (cores)** ao longo de várias semanas para fatorar \\((p-1)/2\\) e descobrir os subgrupos pequenos ocultos em cada primo usado na rede.
+
+---
+
+📈 **Gostaria que eu criasse um roteiro de apresentação em formato PDF para que você possa explicar esses testes e os resultados do seu próprio teste para a sua banca de forma profissional?**
