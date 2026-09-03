@@ -130,7 +130,7 @@ def executar_ataque():
                 restos.append(palpite_v)
                 encontrado = True
                 break
-        if not unreachable_code := encontrado:
+        if not encontrado:
             raise Exception("Falha ao quebrar subgrupo offline.")
             
     # Passo D: CRT
@@ -169,4 +169,7 @@ if __name__ == "__main__":
         print("   subgrupo de ordem prima q, e recusou-se a realizar a operação de MAC.")
         
     print("\n=================================================================")
-    input("[Pressione ENTER para fechar o programa...]")
+    try:
+        input("[Pressione ENTER para fechar o programa...]")
+    except EOFError:
+        pass
