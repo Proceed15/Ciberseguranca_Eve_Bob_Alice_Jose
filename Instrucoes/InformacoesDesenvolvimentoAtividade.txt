@@ -1,39 +1,105 @@
-Instruções Gerais para Rodar o Software:
+================================================================================
+INSTRUÇÕES GERAIS PARA EXECUTAR O LABORATÓRIO (DIFFIE-HELLMAN)
+================================================================================
 
-1. **Bob (O Servidor)**: 
-   * Rodaria em um computador como um **servidor de rede ativo** (usando a biblioteca padrão `socket` do Python ou uma API web minimalista com `Flask`).
-   * Ele abriria uma porta (como a `8080`) e ficaria escutando conexões.
-   * O código de Bob teria a chave privada \\(x\\) estática salva em memória. Ele receberia uma chave pública por TCP/IP, calcularia o segredo modular \\(K = y^x \pmod p\\), geraria o MAC e devolveria os bytes de `(mensagem, MAC)` pela rede.
-2. **Eve (Você - O Cliente)**:
-   * Rodaria o script de ataque em outra máquina conectada à mesma rede.
-   * Em vez de chamar uma função local, seu programa faria uma requisição de rede (via Sockets ou HTTP) enviando as chaves maliciosas \\(h_i\\) para o IP do computador de Bob (ex: `192.168.1.15:8080`).
-   * Ao receber as respostas com os MACs, seu script realizaria a busca exaustiva offline e a reconstrução por CRT inteiramente na sua máquina.
+Este laboratório simula de forma prática e em rede local (usando Sockets TCP) o
+ataque de confinamento em subgrupos pequenos e a respectiva defesa por meio de
+Validação de Subgrupos no protocolo Diffie-Hellman.
 
----
+O ambiente é composto por 4 programas Python independentes que devem ser executados
+em janelas de terminal separadas para demonstrar a interação em tempo real.
 
-#### 1. Implementação do Protocolo e do Oráculo (Bob)
-* **Objetivo**: Simular o comportamento vulnerável de um servidor.
-* **O que fazer**: Bob deve gerar uma chave privada estática \\(x\\) módulo \\(q\\). Ele deve expor uma interface (oráculo) que aceita uma chave pública e devolve um MAC gerado a partir do segredo compartilhado derivado. **Bob não deve validar a chave recebida nesta etapa inicial**.
+--------------------------------------------------------------------------------
+1. OS QUATRO COMPONENTES DO LABORATÓRIO
+--------------------------------------------------------------------------------
 
-#### 2. Implementação do Atacante (Eve)
-* **Objetivo**: Demonstrar a quebra da chave privada sem força bruta direta no segredo gigante.
-* **O que fazer**:
-  * **Fatoração**: Identificar os fatores primos pequenos de \\(j = (p-1)/q\\).
-  * **Confinamento**: Gerar os elementos \\(h\\) de ordem pequena \\(r\\).
-  * **Ataque Offline**: Enviar \\(h\\) para o oráculo, obter o MAC e testar os possíveis valores de \\(K\\) localmente até descobrir \\(x \pmod r\\).
-  * **Matemática do CRT**: Aplicar o **Teorema Chinês do Resto** para unificar todos os pedaços e revelar a chave privada real \\(x\\) de Bob de forma exata.
+- bob_vulnerable.py (Servidor - Porta 8080)
+  Simula um servidor Bob vulnerável. Ele recebe qualquer chave pública pela rede,
+  calcula o segredo compartilhado e gera um MAC sem realizar nenhuma validação
+  sobre a chave pública recebida.
 
-#### 3. Implementação de Testes (Provas de Conceito)
-* **Objetivo**: Comprovar para a banca que seu código funciona de forma automatizada e confiável.
-* **O que fazer**: Criar asserções que verifiquem se a chave recuperada por Eve é idêntica à chave gerada aleatoriamente por Bob no início da execução (como fizemos no final do Programa 3).
+- bob_secure.py (Servidor - Porta 8081)
+  Simula um servidor Bob seguro. Ele escuta na porta 8081 e implementa a
+  Validação de Subgrupo. Se receber uma chave pública inválida (fora do subgrupo
+  de ordem prima q), ele aborta a conexão e se recusa a gerar o MAC.
 
-#### 4. Inclusão de Contramedidas de Segurança (A Defesa)
-Este é um ponto altamente valorizado em apresentações acadêmicas de cibersegurança. Aqui adicione e demonstre **contramedidas de proteção**:
-* **Validação de Subgrupo (Subgroup Validation)**: Bob deve verificar se a chave pública recebida \\(y\\) é válida antes de calcular o segredo compartilhado. Para isso, ele deve checar se:
-  1. \\(1 < y < p-1\\).
-  2. \\(y^q \equiv 1 \pmod p\\). Se este teste falhar, significa que a chave não pertence ao subgrupo correto e a conexão deve ser rejeitada imediatamente.
-* **Cofactor Clearing**: Como alternativa ou defesa extra, o segredo compartilhado pode ser calculado como \\(K = (y^j)^x \pmod p\\) (ou limpando os fatores pequenos), impedindo que o segredo fique confinado a um subgrupo vulnerável.
-* **Demonstração nos testes**: Seu código de teste final deve provar que, **quando a validação está ativada, o ataque de Eve falha** (pois Bob rejeita as chaves públicas maliciosas), e quando está desativada, o ataque funciona.
----
+- alice_legitimate.py (Cliente - Conexão Legítima)
+  Simula uma usuária honesta (Alice). Ela gera uma chave pública válida usando
+  o gerador g correto do grupo e realiza o aperto de mão (handshake) padrão
+  com o Bob (na porta 8080 ou 8081). Funciona com ambos os servidores de forma legítima.
+
+- eve_attacker.py (Cliente - Atacante)
+  Simula a atacante (Eve). Ela realiza o ataque de confinamento de subgrupo.
+  - Se apontada para a porta 8080 (Bob vulnerável), ela extrai os resíduos
+    offline e reconstrói a chave privada de Bob por CRT.
+  - Se apontada para a porta 8081 (Bob seguro), ela é bloqueada na primeira tentativa.
+
+--------------------------------------------------------------------------------
+2. PROTOCOLO DE EXECUÇÃO PASSO A PASSO (DEMONSTRAÇÃO AO VIVO)
+--------------------------------------------------------------------------------
+
+Abra 4 janelas do Prompt de Comando (cmd) ou PowerShell no seu Windows e
+organize-as lado a lado na tela.
+
+PASSO 1: COLOCAR OS SERVIDORES DO BOB NO AR
+-------------------------------------------
+Nas janelas de terminal 1 e 2, inicie os respectivos servidores. Eles ficarão
+escutando a rede de forma contínua.
+
+Terminal 1 (Bob Vulnerável):
+  cmd> python bob_vulnerable.py
+
+Terminal 2 (Bob Seguro):
+  cmd> python bob_secure.py
 
 
+PASSO 2: DEMONSTRAR A CONEXÃO HONESTA (ALICE)
+---------------------------------------------
+No Terminal 3, execute a Alice legítima para provar que a segurança do Bob Seguro
+não impede conexões legítimas de clientes honestos.
+
+Terminal 3 (Alice):
+  cmd> python alice_legitimate.py
+  - O programa perguntará: "Enter Bob's port to connect (8080/8081):"
+  - Digite "8080" e aperte Enter. A conexão será bem-sucedida.
+  - Execute novamente: python alice_legitimate.py
+  - Digite "8081" e aperte Enter. A conexão com o Bob Seguro também será um sucesso.
+
+
+PASSO 3: DEMONSTRAR O SUCESSO DO ATAQUE (EVE -> BOB VULNERÁVEL)
+---------------------------------------------------------------
+No Terminal 4, execute o script de ataque da Eve direcionado ao servidor vulnerável.
+
+Terminal 4 (Eve):
+  cmd> python eve_attacker.py
+  - O programa perguntará: "Enter Bob's port to attack (8080/8081):"
+  - Digite "8080" e aperte Enter.
+  - O script enviará chaves maliciosas (h_i) de ordem pequena, obterá os MACs,
+    calculará os restos offline de forma instantânea e usará o Teorema Chinês
+    do Resto (CRT) para reconstruir perfeitamente a chave privada de Bob.
+  - Compare a chave impressa no Terminal 4 com a chave secreta exibida no Terminal 1.
+    Elas serão rigorosamente idênticas!
+
+
+PASSO 4: DEMONSTRAR O BLOQUEIO DE SEGURANÇA (EVE -> BOB SEGURO)
+---------------------------------------------------------------
+No Terminal 4, tente atacar o servidor seguro de Bob na porta 8081.
+
+Terminal 4 (Eve):
+  cmd> python eve_attacker.py
+  - Digite "8081" e aperte Enter.
+  - O script tentará iniciar o ataque enviando a primeira chave maliciosa (de ordem 2).
+  - O Bob Seguro (Terminal 2) interceptará a chave, validará a sua ordem (y^q mod p != 1),
+    lançará um erro e fechará a conexão de rede imediatamente.
+  - O terminal da Eve imprimirá o bloqueio e não conseguirá extrair nenhum bit da chave.
+
+
+--------------------------------------------------------------------------------
+3. FINALIZANDO OS SERVIDORES DE FORMA LIMPA
+--------------------------------------------------------------------------------
+Sempre que desejar fechar os servidores nos Terminais 1 e 2:
+1. Pressione Enter ou digite "yes" quando o console perguntar:
+   "Do you want to stop the server? (yes/no):"
+2. O socket TCP local será liberado corretamente pelo sistema operacional.
+
+================================================================================
