@@ -13,7 +13,7 @@ Este guia fornece as instruções detalhadas passo a passo para executar os quat
 
 ## Arquitetura dos Arquivos
 
-O laboratório é composto pelos seguintes programas na Pasta VersaoAtual:
+O laboratório é composto pelos seguintes programas na Pasta "VersaoAtual":
 1. `bob_vulnerable.py` (Servidor vulnerável operando na porta TCP **8080**)
 2. `bob_secure.py` (Servidor seguro operando na porta TCP **8081**)
 3. `alice_legitimate.py` (Cliente legítimo que realiza a troca de chaves padrão)
