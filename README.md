@@ -1,17 +1,18 @@
-# Guia de Execução: Laboratório Prático de Cibersegurança
-## Ataques de Confinamento de Subgrupo e Mitigações no Diffie-Hellman
+# Guia de Execução desse Laboratório Prático de Cibersegurança:
+
+## Ataques de Confinamento de Subgrupo e Mitigações no Diffie-Hellman:
 
 Este guia fornece as instruções detalhadas passo a passo para executar os quatro componentes independentes do seu laboratório de testes criptográficos. A arquitetura utiliza sockets TCP locais para simular de forma realista uma rede com três agentes: **Alice (Cliente Legítimo)**, **Bob (Servidor/Alvo)** e **Eve (Atacante)**.
 
 ---
 
-## Pré-requisitos
+## Pré-requisitos:
 * **Python 3.8+** instalado no sistema operacional.
 * Apenas bibliotecas nativas do Python são utilizadas (`socket`, `random`, `hmac`, `hashlib`, `reduce`, `operator`), garantindo compatibilidade imediata sem necessidade de `pip install`.
 
 ---
 
-## Arquitetura dos Arquivos
+## Arquitetura dos Arquivos:
 
 O laboratório é composto pelos seguintes programas na Pasta "VersaoAtual":
 1. `bob_vulnerable.py` (Servidor vulnerável operando na porta TCP **8080**)
@@ -21,11 +22,11 @@ O laboratório é composto pelos seguintes programas na Pasta "VersaoAtual":
 
 ---
 
-## Protocolo de Execução Passo a Passo
+## Protocolo de Execução Passo a Passo:
 
 Para realizar a simulação ao vivo de forma dramática e didática, recomenda-se abrir **4 janelas de terminal (Prompt de Comando ou PowerShell no Windows)** lado a lado na tela.
 
-### Passo 1: Inicializar os Servidores (Bob)
+### Passo 1: Inicializar os Servidores (Bob):
 Nos dois primeiros terminais, coloque os servidores do Bob no ar. Eles permanecerão em execução em loop, aguardando conexões.
 
 * **No Terminal 1 (Bob Vulnerável):**
@@ -42,7 +43,7 @@ Nos dois primeiros terminais, coloque os servidores do Bob no ar. Eles permanece
 
 ---
 
-### Passo 2: Testar Comunicação Legítima (Alice → Bob)
+### Passo 2: Testar Comunicação Legítima (Alice → Bob):
 Neste teste, você demonstrará que a proteção de segurança não quebra a usabilidade de clientes honestos que seguem o protocolo corretamente.
 
 * **No Terminal 3 (Alice Legítima):**
@@ -60,7 +61,7 @@ Neste teste, você demonstrará que a proteção de segurança não quebra a usa
 
 ---
 
-### Passo 3: Executar o Ataque (Eve → Bob Vulnerável)
+### Passo 3: Executar o Ataque (Eve → Bob Vulnerável):
 Agora você demonstrará o ataque de confinamento de subgrupo sendo bem-sucedido contra o alvo desprotegido.
 
 * **No Terminal 4 (Eve Atacante):**
@@ -78,7 +79,7 @@ Agora você demonstrará o ataque de confinamento de subgrupo sendo bem-sucedido
 
 ---
 
-### Passo 4: Testar a Resiliência da Defesa (Eve → Bob Seguro)
+### Passo 4: Testar a Resiliência da Defesa (Eve → Bob Seguro):
 Por fim, demonstre como as contramedidas criptográficas neutralizam o ataque completamente de início.
 
 * **No Terminal 4 (Eve Atacante):**
@@ -91,13 +92,12 @@ Por fim, demonstre como as contramedidas criptográficas neutralizam o ataque co
 
 ---
 
-### Passo 5: Finalização dos Servidores
+### Passo 5: Finalização dos Servidores:
 Para encerrar os servidores de forma limpa nos Terminais 1 e 2:
 1. Vá até o terminal correspondente.
 2. Na pergunta `Do you want to stop the server? (yes/no):`, digite `yes` e pressione **Enter** (ou pressione `Ctrl + C`).
 
 ---
-
 ## Referências
 
 1. Artigo Científico Principal (Estudo de Caso e Medições)
