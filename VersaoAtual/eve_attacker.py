@@ -109,7 +109,8 @@ def run_attacker_eve():
     print(f"[Eve] Product > q? {product_accumulated > q} (Safe threshold for perfect recovery)")
 
     remainders = []
-    
+    bob_B = None  # To preserve across the loop for the final verification
+
     # Step C: For each factor, perform the small subgroup confinement query
     for r in factors_to_use:
         print(f"\n---------------------------------------------------------")
@@ -153,7 +154,6 @@ def run_attacker_eve():
         # MESSAGE:<msg>
         # MAC:<mac_hex>
         lines = response.strip().split('\n')
-        bob_B = None
         msg = None
         received_mac = None
 
@@ -194,6 +194,20 @@ def run_attacker_eve():
     print("\n================== ATTACK RESULT ==================")
     print(f"Bob's Recovered Private Key x: {recovered_bob_x}")
     print(f"Recovered Key Bit Length:      {recovered_bob_x.bit_length()} bits")
+
+    # --- SCRIPT UPGRADE: EXPLICIT KEY VERIFICATION (PROVA DOS NOVES) ---
+    if bob_B is not None:
+        y_test = pow(g, recovered_bob_x, p)
+        print(f"\n[Eve] KEY VERIFICATION (Verification against Bob's Public Key):")
+        print(f"  -> g^(x_rec) mod p = {y_test}")
+        print(f"  -> y_Bob (public) = {bob_B}")
+        if y_test == bob_B:
+            print("  -> 💚 SUCCESS: The public keys match! The private key has been 100% validated and verified! ")
+        else:
+            print("  -> 💔 FAILURE: Public keys do not match. A modular residue was incorrectly decrypted.")
+    else:
+        print("\n[Eve] Warning: Could not perform explicit verification because Bob's public key was not captured.")
+
     print("\n💥 ATTACK COMPLETE: Bob's static private key has been compromised!")
     print("=========================================================")
 
