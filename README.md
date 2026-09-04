@@ -98,14 +98,16 @@ Para encerrar os servidores de forma limpa nos Terminais 1 e 2:
 
 ---
 
-## Conceitos Criptográficos Demonstrados na Apresentação
+## Referências
 
-Ao apresentar este laboratório, certifique-se de associar as execuções de tela aos conceitos teóricos:
-
-1. **Ausência de Validação de Subgrupos:** Mostre no Terminal 1 que o Bob Vulnerável calcula segredos compartilhados para qualquer entrada, o que viola as diretrizes do padrão DSA e abre margem para o ataque de confinamento (Lim-Lee).
-2. **Algoritmo de Pohlig-Hellman Simplificado:** Explique que a Eve encontra cada resto da chave privada resolvendo logaritmos discretos em subgrupos de ordem muito pequena de forma exaustiva offline.
-3. **Teorema Chinês do Resto (CRT):** Destaque como Eve utiliza o Algoritmo de Euclides Estendido para juntar os restos fracionados módulo $r_i$ e reconstruir o segredo completo.
-4. **Validação de Subgrupo Ativa:** Destaque no Terminal 2 que a contramedida de Bob valida se a entrada $y$ satisfaz:
-   * $1 < y < p-1$
-   * $y^q \equiv 1 \pmod p$
-   Isso garante matematicamente que $y$ pertence ao subgrupo cíclico seguro de ordem prima $q$, mitigando o ataque na origem.
+1. Artigo Científico Principal (Estudo de Caso e Medições)
+VALENTA, Luke; ADRIAN, David; SANSO, Antonio; COHNEY, Shaanan; FRIED, Joshua; HASTINGS, Marcella; HALDERMAN, J. Alex; HENINGER, Nadia. Measuring Small Subgroup Attacks Against Diffie-Hellman. In: Proceedings of the 24th Annual Network and Distributed System Security Symposium (NDSS). San Diego, CA, EUA, 2017.
+Nota: Este artigo também está registrado no repositório de pesquisas criptográficas como: IACR Cryptology ePrint Archive, Report 2016/995.
+2. Desafio Prático de Criptoanálise
+THE CRYPTOPALS CRYPTOGRAPHY CHALLENGES. Challenge 57: Diffie-Hellman Revisited (Set 8). Disponível em: https://cryptopals.com/sets/8/challenges/57. Acesso em: set. 2026.
+3. Normas de Segurança e Recomendações de Mitigação
+GILLMOR, Daniel. Negotiated Finite Field Diffie-Hellman Ephemeral Groups for Transport Layer Security (TLS). RFC 7919, Internet Engineering Task Force (IETF), 2016. Disponível em: https://datatracker.ietf.org/doc/html/rfc7919.
+Nota: Esta é a especificação que padronizou os grupos de Diffie-Hellman seguros e a obrigatoriedade de validação para mitigar os ataques discutidos no artigo de Valenta et al.
+4. Fundamentação Teórica (Ataques de Confinamento e Primos de Lim-Lee)
+LIM, Chae Hoon; LEE, Pil Joong. A Key Recovery Attack on Discrete Log-based Schemes using a Small Subgroup. In: Advances in Cryptology — EUROCRYPT '97. Springer, Berlin, Heidelberg, 1997, p. 249-263.
+Nota: Este é o artigo seminal que propôs originalmente a matemática dos ataques em subgrupos pequenos utilizando parametrização de chaves públicas maliciosas.
