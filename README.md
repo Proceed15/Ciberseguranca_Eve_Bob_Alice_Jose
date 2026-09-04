@@ -2,7 +2,7 @@
 
 ## Ataques de Confinamento de Subgrupo e Mitigações no Diffie-Hellman:
 
-Este guia fornece as instruções detalhadas passo a passo para executar os quatro componentes independentes do seu laboratório de testes criptográficos. A arquitetura utiliza sockets TCP locais para simular de forma realista uma rede com três agentes: **Alice (Cliente Legítimo)**, **Bob (Servidor/Alvo)** e **Eve (Atacante)**.
+Este guia fornece algumas instruções detalhadas do passo a passo para executar os quatro componentes independentes do seu laboratório de testes criptográficos. A arquitetura utiliza sockets TCP locais para simular de forma realista uma rede com três agentes: **Alice (Cliente Legítimo)**, **Bob (Servidor/Alvo)** e **Eve (Atacante)**.
 
 ---
 
