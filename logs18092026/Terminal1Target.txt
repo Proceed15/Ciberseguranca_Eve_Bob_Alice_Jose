@@ -1,0 +1,55 @@
+UserPath:~/rustshop_solutions/rustshop_solutions$ cargo run
+   Compiling rustshop_solutions v0.1.0 (/UserPath/rustshop_solutions/rustshop_solutions)
+error[E0277]: the trait bound `fn(Json<Value>, ...) -> ... {register_post}: Handler<_, _, _>` is not satisfied
+    --> src/main.rs:110:38
+     |
+ 110 |         .route("/api/register", post(register_post))
+     |                                 ---- ^^^^^^^^^^^^^ the trait `Handler<_, _, _>` is not implemented for fn item `fn(Json<Value>, Extension<Arc<...>>) -> ... {register_post}`
+     |                                 |
+     |                                 required by a bound introduced by this call
+     |
+help: the following other types implement trait `Handler<T, S, B>`
+    --> /UserPath/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/axum-0.6.20/src/routing/method_routing.rs:1263:1
+     |
+1263 | / impl<S, B> Handler<(), S, B> for MethodRouter<S, B>
+1264 | | where
+1265 | |     S: Clone + 'static,
+1266 | |     B: HttpBody + Send + 'static,
+     | |_________________________________^ `MethodRouter<S, B>` implements `Handler<(), S, B>`
+     |
+    ::: /UserPath/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/axum-0.6.20/src/handler/mod.rs:311:1
+     |
+ 311 | / impl<H, S, T, L, B, B2> Handler<T, S, B2> for Layered<L, H, T, S, B, B2>
+ 312 | | where
+ 313 | |     L: Layer<HandlerService<H, T, S, B>> + Clone + Send + 'static,
+ 314 | |     H: Handler<T, S, B>,
+...    |
+ 320 | |     B: Send + 'static,
+ 321 | |     B2: Send + 'static,
+     | |_______________________^ `Layered<L, H, T, S, B, B2>` implements `Handler<T, S, B2>`
+note: required by a bound in `post`
+    --> /UserPath/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/axum-0.6.20/src/routing/method_routing.rs:145:16
+     |
+ 145 |             H: Handler<T, S, B>,
+     |                ^^^^^^^^^^^^^^^^ required by this bound in `post`
+...
+ 407 | top_level_handler_fn!(post, POST);
+     | ---------------------------------
+     | |                     |
+     | |                     required by a bound in this function
+     | in this macro invocation
+     = note: the full name for the type has been written to '/UserPath/rustshop_solutions/rustshop_solutions/target/debug/deps/rustshop_solutions-0621ae058e94f41b.long-type-3920934085906067690.txt'
+     = note: consider using `--verbose` to print the full type name to the console
+     = note: this error originates in the macro `top_level_handler_fn` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+For more information about this error, try `rustc --explain E0277`.
+error: could not compile `rustshop_solutions` (bin "rustshop_solutions") due to 1 previous error
+UserPath:~/rustshop_solutions/rustshop_solutions$ cargo run
+   Compiling rustshop_solutions v0.1.0 (/UserPath/rustshop_solutions/rustshop_solutions)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 3.51s
+     Running `target/debug/rustshop_solutions`
+🦀 Servidor rustshop rodando em http://127.0.0.1:1337
+^C
+
+UserPath:~/rustshop_solutions/rustshop_solutions$
+Concluded 
